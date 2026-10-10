@@ -1,0 +1,392 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSpend | Expense Tracker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f5fa;
+            color: #222;
+            padding: 30px 15px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+        }
+
+        header {
+            background: #263c78;
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+        }
+
+        header p {
+            margin-top: 10px;
+            color: #dce5ff;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0000000a;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .card h2 {
+            color: #263c78;
+            font-size: 21px;
+            overflow-wrap: anywhere;
+        }
+
+        section {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            margin-bottom: 22px;
+        }
+
+        h3 {
+            margin-bottom: 18px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #d5d9e5;
+            font-size: 15px;
+        }
+
+        button {
+            background: #263c78;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #182957;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .expense {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .expense small {
+            color: #777;
+        }
+
+        .expense button {
+            width: auto;
+            padding: 8px 10px;
+            background: #b42335;
+            font-size: 12px;
+        }
+
+        .empty {
+            color: #777;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .budget-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .budget-row input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #message {
+            margin-top: 12px;
+            color: #b42335;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            color: #777;
+            padding: 15px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            form {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: auto;
+            }
+
+            header, section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header>
+        <h1>SmartSpend 💰</h1>
+        <p>Track your expenses. Manage your money. Build better habits.</p>
+    </header>
+
+    <div class="summary">
+        <div class="card">
+            <p>Monthly Budget (UGX)</p>
+            <h2 id="budgetDisplay">100,000</h2>
+        </div>
+
+        <div class="card">
+            <p>Total Expenses (UGX)</p>
+            <h2 id="totalDisplay">0</h2>
+        </div>
+
+        <div class="card">
+            <p>Money Remaining (UGX)</p>
+            <h2 id="remainingDisplay">100,000</h2>
+        </div>
+    </div>
+
+    <section>
+        <h3>Set Your Budget</h3>
+        <div class="budget-row">
+            <input type="number" id="budgetInput"
+                   min="0" step="1" placeholder="Enter budget in UGX">
+            <button id="budgetButton" type="button">Save Budget</button>
+        </div>
+        <p id="message" role="status"></p>
+    </section>
+
+    <section>
+        <h3>Add a New Expense</h3>
+
+        <form id="expenseForm">
+            <input type="text" id="description"
+                   placeholder="Expense description" required maxlength="80">
+
+            <input type="number" id="amount"
+                   placeholder="Amount in UGX" min="1" step="1" required>
+
+            <select id="category" required>
+                <option value="">Choose category</option>
+                <option>Food</option>
+                <option>Transport</option>
+                <option>Education</option>
+                <option>Shopping</option>
+                <option>Bills</option>
+                <option>Other</option>
+            </select>
+
+            <input type="date" id="date" required>
+
+            <button class="full-width" type="submit">Add Expense</button>
+        </form>
+    </section>
+
+    <section>
+        <h3>Recent Expenses</h3>
+        <div id="expenseList">
+            <p class="empty">No expenses recorded yet.</p>
+        </div>
+    </section>
+
+    <footer>
+        SmartSpend &copy; 2026 | Built with HTML, CSS and JavaScript
+    </footer>
+
+</div>
+
+<script>
+    let budget = 100000;
+    let expenses = [];
+
+    const money = amount =>
+        new Intl.NumberFormat("en-UG", {
+            maximumFractionDigits: 0
+        }).format(amount);
+
+    function updateSummary() {
+        const total = expenses.reduce(
+            (sum, expense) => sum + expense.amount, 0
+        );
+
+        document.getElementById("budgetDisplay").textContent =
+            money(budget);
+
+        document.getElementById("totalDisplay").textContent =
+            money(total);
+
+        document.getElementById("remainingDisplay").textContent =
+            money(budget - total);
+    }
+
+    function renderExpenses() {
+        const list = document.getElementById("expenseList");
+        list.replaceChildren();
+
+        if (expenses.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "empty";
+            empty.textContent = "No expenses recorded yet.";
+            list.appendChild(empty);
+            return;
+        }
+
+        [...expenses].reverse().forEach(expense => {
+            const item = document.createElement("div");
+            item.className = "expense";
+
+            const details = document.createElement("div");
+            const title = document.createElement("strong");
+            title.textContent = expense.description;
+
+            const info = document.createElement("small");
+            info.textContent =
+                `${expense.category} • ${expense.date}`;
+
+            details.append(title, document.createElement("br"), info);
+
+            const right = document.createElement("div");
+            right.style.textAlign = "right";
+
+            const amount = document.createElement("strong");
+            amount.textContent = `UGX ${money(expense.amount)}`;
+
+            const remove = document.createElement("button");
+            remove.textContent = "Delete";
+            remove.type = "button";
+            remove.setAttribute(
+                "aria-label", `Delete ${expense.description}`
+            );
+
+            remove.addEventListener("click", () => {
+                expenses = expenses.filter(
+                    entry => entry.id !== expense.id
+                );
+                renderExpenses();
+                updateSummary();
+            });
+
+            right.append(amount, document.createElement("br"), remove);
+            item.append(details, right);
+            list.appendChild(item);
+        });
+    }
+
+    document.getElementById("budgetButton").addEventListener(
+        "click", () => {
+            const input = document.getElementById("budgetInput");
+            const message = document.getElementById("message");
+
+            if (input.value.trim() === "" ||
+                !Number.isSafeInteger(Number(input.value)) ||
+                Number(input.value) < 0) {
+                message.textContent =
+                    "Enter a valid budget of zero or more whole shillings.";
+                return;
+            }
+
+            budget = Number(input.value);
+            message.textContent = "Budget updated successfully!";
+            updateSummary();
+        }
+    );
+
+    document.getElementById("expenseForm").addEventListener(
+        "submit", event => {
+            event.preventDefault();
+
+            const description =
+                document.getElementById("description").value.trim();
+            const amountInput = document.getElementById("amount");
+            const amount = Number(amountInput.value);
+            const category =
+                document.getElementById("category").value;
+            const date = document.getElementById("date").value;
+
+            if (!description || !category || !date ||
+                amountInput.value.trim() === "" ||
+                !Number.isSafeInteger(amount) || amount <= 0) {
+                alert("Please enter valid expense details.");
+                return;
+            }
+
+            expenses.push({
+                id: Date.now() + Math.random(),
+                description,
+                amount,
+                category,
+                date
+            });
+
+            event.target.reset();
+            document.getElementById("date").value =
+                new Date().toLocaleDateString("en-CA");
+
+            document.getElementById("message").textContent = "";
+            renderExpenses();
+            updateSummary();
+        }
+    );
+
+    document.getElementById("date").value =
+        new Date().toLocaleDateString("en-CA");
+
+    updateSummary();
+    renderExpenses();
+</script>
+</body>
+</html>
