@@ -38,10 +38,10 @@ def show_total():
 def main():
     while True:
         print("\n===== SMARTSPEND =====")
-        print("1. Add Expense")
-        print("2. View Expenses")
-        print("3. View Total Spending")
-        print("4. Exit")
+        print("1. add Expense")
+        print("2. view Expenses")
+        print("3. view Total Spending")
+        print("4. exit")
 
         choice = input("Choose an option: ")
 
