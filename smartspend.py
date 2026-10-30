@@ -5,9 +5,9 @@
 expenses = []
 
 def add_expense():
-    name = input("Enter expense name: ")
-    amount = float(input("Enter expense amount: "))
-    category = input("Enter expense category: ")
+    name = input("enter expense name: ")
+    amount = float(input("enter expense amount: "))
+    category = input("enter expense category: ")
 
     expense = {
         "name": name,
@@ -38,9 +38,9 @@ def show_total():
 def main():
     while True:
         print("\n===== SMARTSPEND =====")
-        print("1. add Expense")
-        print("2. view Expenses")
-        print("3. view Total Spending")
+        print("1. add expense")
+        print("2. view expenses")
+        print("3. view total Spending")
         print("4. exit")
 
         choice = input("Choose an option: ")
